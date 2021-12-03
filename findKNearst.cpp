@@ -4,18 +4,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-constexpr int RECORDS = 1<<17;
-constexpr int LEN_ST = 3;
-constexpr int LEN_CTY = 9;
-constexpr int LEN_TEMP = 64;
+constexpr int RECORDS = 1<<22;
+constexpr int LEN_ST = 3; // strlen of state
+constexpr int LEN_CTY = 9; // strlen of county
+constexpr int LEN_TEMP = 64; // used for skip the first line in input file
 struct County {
-    char state[LEN_ST];
-    char name[LEN_CTY];
-    double lat;
-    double lon;
-};
+    char state[LEN_ST], char name[LEN_CTY];
+    double lat, double lon;
+} counties[RECORDS];
 int main(int argc, char *argv[]) {
-    char *infile = argv[1];
+    char *infile = argv[1], outfile[strlen(infile)+5];
+    strcpy(outfile, infile); strcat(outfile, "_out");
     FILE *fin = fopen(infile, "r");
     if (fin == nullptr) {
         printf("Did not find input file!\n");
@@ -24,12 +23,13 @@ int main(int argc, char *argv[]) {
     double lat[RECORDS], lon[RECORDS];
     char state[RECORDS][LEN_ST], county[RECORDS][LEN_CTY];
     char temp[LEN_TEMP];
-    fgets(temp, LEN_TEMP, fin);
+    fgets(temp, LEN_TEMP, fin); // skip the first line
     int i=0;
-    County counties[RECORDS];
     while (i<RECORDS && fscanf(fin, "%s %s %lf %lf", counties[i].state, counties[i].name, &counties[i].lat, &counties[i].lon) != EOF) {
-    ++i;
+        ++i;
     }
-    County c = counties[20];
-    printf("%s %s %lf %lf\n", c.state, c.name, c.lat, c.lon);
+    fclose(fin);
+    FILE *fout = fopen(outfile,"w");
+
+    fclose(fout);
 }
