@@ -9,8 +9,8 @@ constexpr int LEN_ST = 3; // strlen of state
 constexpr int LEN_CTY = 9; // strlen of county
 constexpr int LEN_TEMP = 64; // used for skip the first line in input file
 struct County {
-    char state[LEN_ST], char name[LEN_CTY];
-    double lat, double lon;
+    char state[LEN_ST], name[LEN_CTY];
+    double lat, lon;
 } counties[RECORDS];
 int main(int argc, char *argv[]) {
     char *infile = argv[1], outfile[strlen(infile)+5];
