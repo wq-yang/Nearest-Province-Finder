@@ -1,30 +1,26 @@
 // Copyright 2021 Wenqiang Yang, Jiaqi Zhang
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <queue>
+#include <string>
 #include <utility>
 #include <vector>
-using std::less;
-using std::nth_element;
-using std::pair;
-using std::priority_queue;
-using std::vector;
-const int RECORDS = 1<<22;
+using namespace std;
+const int MAX = 1<<22;
 const int K = 7;
-const int LEN_ST = 3; // strlen of state
-const int LEN_CTY = 9; // strlen of county
+int RECORDS;
 struct County {
-    char state[LEN_ST], name[LEN_CTY];
+    string state, name;
     double lat, lon; // latitude and longitude
     double minLat, minLon, maxLat, maxLon;// min and max coordinates among descendants
     int left, right; // children id
-} counties[RECORDS];
+} counties[MAX];
 // find the nearest K counties for each query. pair: { distance, id }
 priority_queue<pair<int, int>, vector<pair<int, int> >, less<pair<int, int> > > pq;
-
+inline bool validLat(int lat) { return -90<=lat && lat<=90; }
+inline bool validLon(int lon) { return -180<=lon && lon<=180; }
 // equirectangular approx. distance = sqrt(sq_dist(c1, c2)) * R
 inline double sq_dist(const double lat1, const double lon1, const double lat2, const double lon2) {
     double x = (lon2-lon1) * cos((lat1+lat2)/2), y = lat2-lat1;
@@ -47,18 +43,41 @@ inline double h(const County& c, const double lat, const double lon) {
 }
 
 void readFile(char *infile) {
-    FILE *fin = fopen(infile, "r");
-    if (fin == nullptr) {
-        printf("Did not find input file!\n");
+    ifstream fin(infile);
+    if (!fin) {
+        cout << "Did not find the input file!\n";
         exit(1);
     }
-    char temp[64];
-    fgets(temp, 64, fin); // skip the first line
+    string line;
+    getline(fin, line); // skip the first line
     int i=0;
-    while (i<RECORDS && fscanf(fin, "%s %s %lf %lf", counties[i].state, counties[i].name, &counties[i].lat, &counties[i].lon) != EOF) {
+    while (i<MAX) {
+        if (!getline(fin, line, '\t')) break;
+        counties[i].state = line;
+        if (!getline(fin, line, '\t')) break;
+        counties[i].name = line;
+        try {
+            if (!getline(fin, line, '\t')) break;
+            counties[i].lat = stod(line);
+        } catch(const std::exception& e) {
+            cout << i << ": " << line << endl;
+        }
+        try {
+            if (!getline(fin, line)) break;
+            counties[i].lon = stod(line);
+        } catch(const std::exception& e) {
+            cout << i << ": " << line << endl;
+        }
+        # if 0
+        if (!validLat(counties[i].lat) || !validLon(counties[i].lon)) {
+            cout << "invalid: i=" << i << ", name=" << counties[i].name
+            << ", lat = " << counties[i].lat
+            << ", lon = " << counties[i].lon << endl;
+        }
+        # endif
         ++i;
     }
-    fclose(fin);
+    RECORDS = i;
 }
 void maintain(County& c) {
     c.minLat = c.maxLat = c.lat;
@@ -102,8 +121,6 @@ int build(int l, int r) {
     maintain(counties[mid]);
     return mid;
 }
-bool validLat(int lat) { return -90<=lat && lat<=90; }
-bool validLon(int lon) { return -180<=lon && lon<=180; }
 void query(int l, int r, int lat, int lon) {
     if (l > r) return;
     int mid = l + (r-l)/2;
@@ -127,22 +144,26 @@ void query(int l, int r, int lat, int lon) {
 int main(int argc, char *argv[]) {
     readFile(argv[1]);
     build(0, RECORDS-1);
+    for (int i=0; i<RECORDS; i+=100000) {
+        cout <<i << " " << counties[i].name << " " << counties[i].lat << " " << counties[i].lon<< " " << counties[i].left << " " << counties[i].right << endl;
+    }
     while (true) {
         double lat, lon;
-        printf("Please input latitude and longitude, separated by space...\n");
-        scanf("%lf %lf", &lat, &lon);
+        cout << "Please input latitude and longitude, separated by space...\n";
+        cin >> lat >> lon;
         if (!validLat(lat) || !validLon(lon)) {
-            printf("Invalid input! Try Again...\n");
+            cout << "Invalid input! Try Again...\n";
             continue;
         }
-        printf("querying...\n");
+        cout << "querying...\n";
+        pq.push({INFINITY, -1});
         query(0, RECORDS-1, lat, lon);
-        printf("The (at most) %d nearest counties are: ", K);
+        cout << "The " << K << " nearest counties are: ";
         while (!pq.empty()) {
             int id = pq.top().second;
-            printf("%s ", counties[id].name);
+            if (id != -1) cout << counties[id].name << " ";
             pq.pop();
         }
-        printf("\n");
+        cout << endl;
     }
 }
