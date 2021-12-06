@@ -45,7 +45,7 @@ inline double h(const County& c, const double lat, const double lon) {
 void readFile(char *infile) {
     ifstream fin(infile);
     if (!fin) {
-        cout << "Did not find the input file!\n";
+        cout << "\033[1;31mDid not find the input file! \033[0m\n";
         exit(1);
     }
     string line;
@@ -144,26 +144,24 @@ void query(int l, int r, int lat, int lon) {
 int main(int argc, char *argv[]) {
     readFile(argv[1]);
     build(0, RECORDS-1);
-    for (int i=0; i<RECORDS; i+=100000) {
-        cout <<i << " " << counties[i].name << " " << counties[i].lat << " " << counties[i].lon<< " " << counties[i].left << " " << counties[i].right << endl;
-    }
     while (true) {
         double lat, lon;
-        cout << "Please input latitude and longitude, separated by space...\n";
+        cout << "\033[;34mPlease input latitude and longitude, separated by space... To quit, press Ctrl+C\033[0m\n";
         cin >> lat >> lon;
         if (!validLat(lat) || !validLon(lon)) {
-            cout << "Invalid input! Try Again...\n";
+            cout << "\033[1;31m Invalid input! Please try Again...\033[0m\n";
             continue;
         }
-        cout << "querying...\n";
+        cout << "\033[;33mQuerying { latitude=" << lat << ", longitude=" << lon << " }...\033[0m\n";
         pq.push({INFINITY, -1});
         query(0, RECORDS-1, lat, lon);
         cout << "The " << K << " nearest counties are: ";
         while (!pq.empty()) {
             int id = pq.top().second;
-            if (id != -1) cout << counties[id].name << " ";
+            if (id != -1) cout << counties[id].name;
+            if (pq.size() > 1) cout << ", ";
+            else cout << ".\n";
             pq.pop();
         }
-        cout << endl;
     }
 }
