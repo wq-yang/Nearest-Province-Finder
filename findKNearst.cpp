@@ -9,9 +9,9 @@
 #include <vector>
 using namespace std;
 const int MAX = 1<<22;
-const int K = 7;
 const double R = 6371;
 const double PI = 3.14159265358979;
+int K;
 int RECORDS;
 struct Place {
     string state, county;
@@ -20,13 +20,13 @@ struct Place {
     double minPhi, minLam, maxPhi, maxLam;// min and max coordinates among descendants
     int left, right; // children id
 } places[MAX];
-// find the nearest K places for each query. pair: { distance, id }
+// find the nearest K places for each query. pair: { distance, index }
 priority_queue<pair<double, int>, vector<pair<double, int> >, less<pair<double, int> > > pq;
+
 inline bool validLat(int lat) { return -90<=lat && lat<=90; }
 inline bool validLon(int lon) { return -180<=lon && lon<=180; }
-// equirectangular approx. distance = sqrt(sq_dist(c1, c2)) * R
 inline double degToRad(double deg) { return deg*PI/180; }
-inline double radToDeg(double rad) { return rad*180/PI; }
+// equirectangular approx. distance = sqrt(sq_dist(c1, c2)) * R
 inline double sq_dist(const double phi1, const double lam1, const double phi2, const double lam2) {
     double x = (lam2-lam1) * cos((phi1+phi2)/2), y = phi2-phi1;
     return x*x+y*y;
@@ -132,7 +132,7 @@ void query(int l, int r, double phi, double lam) {
     Place cur = places[mid];
     double sqd = sq_dist(cur.phi, cur.lam, phi, lam);
     if (pq.top().first > sqd) {
-        if (pq.size() >= K) pq.pop();
+        if (pq.size() >= max(5, K)) pq.pop();
         pq.push({ sqd, mid });
     }
     // search the left and right subtree heuristically
@@ -147,7 +147,11 @@ void query(int l, int r, double phi, double lam) {
     }
 }
 int main(int argc, char *argv[]) {
+    cout << "\033[1;33mLoading file...\033[0m\n";
     readFile(argv[1]);
+    cout << "\033[1;36mPlease input K...\033[0m";
+    cin >> K;
+    cout << "\033[1;33mPreprocessing...\033[0m\n";
     build(0, RECORDS-1);
     while (true) {
         double lat, lon, phi, lam;
@@ -163,7 +167,8 @@ int main(int argc, char *argv[]) {
         pq.push({INFINITY, -1});
         query(0, RECORDS-1, phi, lam);
         cout << "The " << K << " nearest places are:\n";
-        while (!pq.empty()) {
+        int i=0;
+        while (!pq.empty() && i++<K) {
             int id = pq.top().second;
             double dist = pq.top().first;
             if (id != -1) {
@@ -171,8 +176,7 @@ int main(int argc, char *argv[]) {
                     << "(" << places[id].lat << ", " << places[id].lon << "), ";
                 cout << "distance = " << sqrt(dist)*R << "km";
             }
-            if (pq.size() > 1) cout << ",\n";
-            else cout << ".\n";
+            cout << endl;
             pq.pop();
         }
     }
