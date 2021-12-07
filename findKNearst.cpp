@@ -113,9 +113,9 @@ int build(int l, int r) {
     }
     // cut at the dimension with greatest variance
     if (var1 >= var2) {
-        nth_element(places+l, places+mid, places+r+1, [](Place &c1, Place &c2) { return c1.lat < c2.lat; });
+        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.lat < c2.lat; });
     } else {
-        nth_element(places+l, places+mid, places+r+1, [](Place &c1, Place &c2) { return c1.lon < c2.lon; });
+        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.lon < c2.lon; });
     }
     places[mid].left = build(l, mid-1);
     places[mid].right = build(mid+1, r);
@@ -147,13 +147,13 @@ int main(int argc, char *argv[]) {
     build(0, RECORDS-1);
     while (true) {
         double lat, lon;
-        cout << "\033[;34mPlease input latitude and longitude, separated by space... To quit, press Ctrl+C\033[0m\n";
+        cout << "\033[1;36mPlease input latitude and longitude, separated by space... To quit, press Ctrl+C\033[0m\n";
         cin >> lat >> lon;
         if (!validLat(lat) || !validLon(lon)) {
-            cout << "\033[1;31m Invalid input! Please try Again...\033[0m\n";
+            cout << "\033[1;31mInvalid input! Please try Again...\033[0m\n";
             continue;
         }
-        cout << "\033[;33mQuerying { latitude=" << lat << ", longitude=" << lon << " }...\033[0m\n";
+        cout << "\033[1;33mQuerying { latitude=" << lat << ", longitude=" << lon << " }...\033[0m\n";
         pq.push({INFINITY, -1});
         query(0, RECORDS-1, lat, lon);
         cout << "The " << K << " nearest places are:\n";
