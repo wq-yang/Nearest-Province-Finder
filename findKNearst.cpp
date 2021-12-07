@@ -16,7 +16,8 @@ int RECORDS;
 struct Place {
     string state, county;
     double lat, lon; // latitude and longitude
-    double minLat, minLon, maxLat, maxLon;// min and max coordinates among descendants
+    double phi, lam; // rad ver. of latitude and longitude
+    double minPhi, minLam, maxPhi, maxLam;// min and max coordinates among descendants
     int left, right; // children id
 } places[MAX];
 // find the nearest K places for each query. pair: { distance, id }
@@ -25,22 +26,23 @@ inline bool validLat(int lat) { return -90<=lat && lat<=90; }
 inline bool validLon(int lon) { return -180<=lon && lon<=180; }
 // equirectangular approx. distance = sqrt(sq_dist(c1, c2)) * R
 inline double degToRad(double deg) { return deg*PI/180; }
-inline double sq_dist(const double lat1, const double lon1, const double lat2, const double lon2) {
-    double x = (lon2-lon1) * cos(degToRad((lat1+lat2)/2)), y = lat2-lat1;
+inline double radToDeg(double rad) { return rad*180/PI; }
+inline double sq_dist(const double phi1, const double lam1, const double phi2, const double lam2) {
+    double x = (lam2-lam1) * cos((phi1+phi2)/2), y = phi2-phi1;
     return x*x+y*y;
 }
 // heuristic function. the min distance between the queired point and the rectangle that subtree locates
-inline double h(const Place& c, const double lat, const double lon) {
-    double x = lon < c.minLon ? c.minLon - lon
-            : c.maxLon < lon ? lon - c.maxLon : 0;
-    double y = lat < c.minLat ? c.minLat - lat
-            : c.maxLat < lat ? lat - c.maxLat : 0;
-    if (lat < c.minLat) {
-        x *= cos(degToRad((lat+c.minLat)/2));
-    } else if (c.maxLat < lat) {
-        x *= cos(degToRad((lat+c.maxLat)/2));
+inline double h(const Place& c, const double phi, const double lam) {
+    double x = lam < c.minLam ? c.minLam - lam
+            : c.maxLam < lam ? lam - c.maxLam : 0;
+    double y = phi < c.minPhi ? c.minPhi - phi
+            : c.maxPhi < phi ? phi - c.maxPhi : 0;
+    if (phi < c.minPhi) {
+        x *= cos((phi+c.minPhi)/2);
+    } else if (c.maxPhi < phi) {
+        x *= cos((phi+c.maxPhi)/2);
     } else {
-        x *= cos(degToRad(lat));
+        x *= cos(phi);
     }
     return x*x+y*y;
 }
@@ -62,40 +64,40 @@ void readFile(char *infile) {
         try {
             if (!getline(fin, line, '\t')) break;
             places[i].lat = stod(line);
+            places[i].phi = degToRad(places[i].lat);
         } catch(const std::exception& e) {
             cout << i << ": " << line << endl;
         }
         try {
             if (!getline(fin, line)) break;
             places[i].lon = stod(line);
+            places[i].lam = degToRad(places[i].lon);
         } catch(const std::exception& e) {
             cout << i << ": " << line << endl;
         }
-        # if 0
         if (!validLat(places[i].lat) || !validLon(places[i].lon)) {
             cout << "invalid: i=" << i << ", county=" << places[i].county
             << ", lat = " << places[i].lat
             << ", lon = " << places[i].lon << endl;
         }
-        # endif
         ++i;
     }
     RECORDS = i;
 }
 void maintain(Place& c) {
-    c.minLat = c.maxLat = c.lat;
-    c.minLon = c.maxLon = c.lon;
+    c.minPhi = c.maxPhi = c.phi;
+    c.minLam = c.maxLam = c.lam;
     if (c.left != -1) {
-        c.minLat = fmin(c.minLat, places[c.left].minLat);
-        c.minLon = fmin(c.minLon, places[c.left].minLon);
-        c.maxLat = fmax(c.maxLat, places[c.left].maxLat);
-        c.maxLon = fmax(c.maxLon, places[c.left].maxLon);
+        c.minPhi = fmin(c.minPhi, places[c.left].minPhi);
+        c.minLam = fmin(c.minLam, places[c.left].minLam);
+        c.maxPhi = fmax(c.maxPhi, places[c.left].maxPhi);
+        c.maxLam = fmax(c.maxLam, places[c.left].maxLam);
     }
     if (c.right != -1) {
-        c.minLat = fmin(c.minLat, places[c.right].minLat);
-        c.minLon = fmin(c.minLon, places[c.right].minLon);
-        c.maxLat = fmax(c.maxLat, places[c.right].maxLat);
-        c.maxLon = fmax(c.maxLon, places[c.right].maxLon);
+        c.minPhi = fmin(c.minPhi, places[c.right].minPhi);
+        c.minLam = fmin(c.minLam, places[c.right].minLam);
+        c.maxPhi = fmax(c.maxPhi, places[c.right].maxPhi);
+        c.maxLam = fmax(c.maxLam, places[c.right].maxLam);
     }
 }
 // build balanced kd-tree.
@@ -104,60 +106,62 @@ int build(int l, int r) {
     int mid = l + (r-l)/2;
     double mean1=0, mean2=0, var1=0, var2=0;
     for (int i=l; i<=r; ++i) {
-        mean1 += places[i].lat;
-        mean2 += places[i].lon;
+        mean1 += places[i].phi;
+        mean2 += places[i].lam;
     }
     mean1 /= r-l+1;
     mean2 /= r-l+1;
     for (int i=l; i<=r; ++i) {
-        var1 += (places[i].lat-mean1) * (places[i].lat-mean1);
-        var2 += (places[i].lon-mean2) * (places[i].lon-mean2);
+        var1 += (places[i].phi-mean1) * (places[i].phi-mean1);
+        var2 += (places[i].lam-mean2) * (places[i].lam-mean2);
     }
     // cut at the dimension with greatest variance
     if (var1 >= var2) {
-        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.lat < c2.lat; });
+        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.phi < c2.phi; });
     } else {
-        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.lon < c2.lon; });
+        nth_element(places+l, places+mid, places+r+1, [](const Place &c1, const Place &c2) { return c1.lam < c2.lam; });
     }
     places[mid].left = build(l, mid-1);
     places[mid].right = build(mid+1, r);
     maintain(places[mid]);
     return mid;
 }
-void query(int l, int r, double lat, double lon) {
+void query(int l, int r, double phi, double lam) {
     if (l > r) return;
     int mid = l + (r-l)/2;
     Place cur = places[mid];
-    double sqd = sq_dist(cur.lat, cur.lon, lat, lon);
+    double sqd = sq_dist(cur.phi, cur.lam, phi, lam);
     if (pq.top().first > sqd) {
         if (pq.size() >= K) pq.pop();
         pq.push({ sqd, mid });
     }
     // search the left and right subtree heuristically
-    double sqdl = cur.left == -1 ? INFINITY : h(places[cur.left], lat, lon),
-        sqdr = cur.right == -1 ? INFINITY : h(places[cur.right], lat, lon);
+    double sqdl = cur.left == -1 ? INFINITY : h(places[cur.left], phi, lam),
+        sqdr = cur.right == -1 ? INFINITY : h(places[cur.right], phi, lam);
     if (sqdl < sqdr && sqdl < pq.top().first) { // search left first, then right if necessary
-        query(l, mid-1, lat, lon);
-        if (sqdr < pq.top().first) query(mid+1, r, lat, lon);
+        query(l, mid-1, phi, lam);
+        if (sqdr < pq.top().first) query(mid+1, r, phi, lam);
     } else if (sqdr <= sqdl && sqdr < pq.top().first) { // search right first, then left if necessary
-        query(mid+1, r, lat, lon);
-        if (sqdl < pq.top().first) query(l, mid-1, lat, lon);
+        query(mid+1, r, phi, lam);
+        if (sqdl < pq.top().first) query(l, mid-1, phi, lam);
     }
 }
 int main(int argc, char *argv[]) {
     readFile(argv[1]);
     build(0, RECORDS-1);
     while (true) {
-        double lat, lon;
+        double lat, lon, phi, lam;
         cout << "\033[1;36mPlease input latitude and longitude, separated by space... To quit, press Ctrl+C\033[0m\n";
         cin >> lat >> lon;
+        phi = degToRad(lat);
+        lam = degToRad(lon);
         if (!validLat(lat) || !validLon(lon)) {
             cout << "\033[1;31mInvalid input! Please try Again...\033[0m\n";
             continue;
         }
         cout << "\033[1;33mQuerying { latitude=" << lat << ", longitude=" << lon << " }...\033[0m\n";
         pq.push({INFINITY, -1});
-        query(0, RECORDS-1, lat, lon);
+        query(0, RECORDS-1, phi, lam);
         cout << "The " << K << " nearest places are:\n";
         while (!pq.empty()) {
             int id = pq.top().second;
