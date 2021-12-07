@@ -10,7 +10,8 @@
 using namespace std;
 const int MAX = 1<<22;
 const int K = 7;
-const double R = 6371000;
+const double R = 6371;
+const double PI = 3.14159265358979;
 int RECORDS;
 struct Place {
     string state, county;
@@ -19,12 +20,13 @@ struct Place {
     int left, right; // children id
 } places[MAX];
 // find the nearest K places for each query. pair: { distance, id }
-priority_queue<pair<int, int>, vector<pair<int, int> >, less<pair<int, int> > > pq;
+priority_queue<pair<double, int>, vector<pair<double, int> >, less<pair<double, int> > > pq;
 inline bool validLat(int lat) { return -90<=lat && lat<=90; }
 inline bool validLon(int lon) { return -180<=lon && lon<=180; }
 // equirectangular approx. distance = sqrt(sq_dist(c1, c2)) * R
+inline double degToRad(double deg) { return deg*PI/180; }
 inline double sq_dist(const double lat1, const double lon1, const double lat2, const double lon2) {
-    double x = (lon2-lon1) * cos((lat1+lat2)/2), y = lat2-lat1;
+    double x = (lon2-lon1) * cos(degToRad((lat1+lat2)/2)), y = lat2-lat1;
     return x*x+y*y;
 }
 // heuristic function. the min distance between the queired point and the rectangle that subtree locates
@@ -34,11 +36,11 @@ inline double h(const Place& c, const double lat, const double lon) {
     double y = lat < c.minLat ? c.minLat - lat
             : c.maxLat < lat ? lat - c.maxLat : 0;
     if (lat < c.minLat) {
-        x *= cos((lat+c.minLat)/2);
+        x *= cos(degToRad((lat+c.minLat)/2));
     } else if (c.maxLat < lat) {
-        x *= cos((lat+c.maxLat)/2);
+        x *= cos(degToRad((lat+c.maxLat)/2));
     } else {
-        x *= cos(lat);
+        x *= cos(degToRad(lat));
     }
     return x*x+y*y;
 }
@@ -122,7 +124,7 @@ int build(int l, int r) {
     maintain(places[mid]);
     return mid;
 }
-void query(int l, int r, int lat, int lon) {
+void query(int l, int r, double lat, double lon) {
     if (l > r) return;
     int mid = l + (r-l)/2;
     Place cur = places[mid];
