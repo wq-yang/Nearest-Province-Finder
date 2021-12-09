@@ -49,14 +49,14 @@ function initMap() {
     infoWindow = new google.maps.InfoWindow({
       position: mapsMouseEvent.latLng,
     });
-
+    console.log(mapsMouseEvent.latLng.toJSON())
+    const {lat, lng} = mapsMouseEvent.latLng.toJSON()
+    const content = "("+lat.toFixed(2)+", "+lng.toFixed(2)+")";
     infoWindow.setContent(
-      JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2)
+      JSON.stringify(content, null, 2)
       //JSON.stringify(formStr)
     );
     try {
-      const str: any = infoWindow.getContent()
-      const {lat, lng}: any = JSON.parse(str)
       const res:any = await axios.get(`http://localhost:3000/api/pos?lat=${lat}&lng=${lng}`);
       console.log(res.data.pos)
       res.data.pos.forEach(({rank, lat, lng }:any) => {
