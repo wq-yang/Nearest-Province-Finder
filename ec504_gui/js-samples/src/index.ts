@@ -43,113 +43,117 @@ function initMap() {
     // Close the current InfoWindow.
     infoWindow.close();
 
-    markers.forEach(marker=>marker.setMap(null));
+    markers.forEach(marker => marker.setMap(null));
     markers = [];
     // Create a new InfoWindow.
     infoWindow = new google.maps.InfoWindow({
       position: mapsMouseEvent.latLng,
     });
 
-    
     infoWindow.setContent(
       JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2)
       //JSON.stringify(formStr)
     );
-    const str: any = infoWindow.getContent()
-    const {lat, lng}: any = JSON.parse(str)
-    const res:any = await axios.get(`http://localhost:3000/api/pos?lat=${lat}&lng=${lng}`);
-      console.log("res",res)
-    addPosMarker(map, '0', Number(res.data.lat), Number(res.data.lng))
+    try {
+      const str: any = infoWindow.getContent()
+      const {lat, lng}: any = JSON.parse(str)
+      const res:any = await axios.get(`http://localhost:3000/api/pos?lat=${lat}&lng=${lng}`);
+      console.log(res.data.pos)
+      res.data.pos.forEach(({rank, lat, lng }:any) => {
+        addPosMarker(map, String(rank), Number(lat), Number(lng));
+      });
+      
+    } catch (e) {console.error(e)}
 
     console.log(infoWindow.getContent())
 
     infoWindow.open(map);
   });
 
-  const k1 = document.createElement("button");
-  k1.textContent = "K=1";
+  // const k1 = document.createElement("button");
+  // k1.textContent = "K=1";
 
-  const k2 = document.createElement("button");
-  k2.textContent = "K=2";
+  // const k2 = document.createElement("button");
+  // k2.textContent = "K=2";
 
-  const k3 = document.createElement("button");
-  k3.textContent = "K=3";
+  // const k3 = document.createElement("button");
+  // k3.textContent = "K=3";
 
-  const k4 = document.createElement("button");
-  k4.textContent = "K=4";
+  // const k4 = document.createElement("button");
+  // k4.textContent = "K=4";
 
-  const k5 = document.createElement("button");
-  k5.textContent = "K=5";
+  // const k5 = document.createElement("button");
+  // k5.textContent = "K=5";
 
-  const k6 = document.createElement("button");
-  k6.textContent = "K=6";
+  // const k6 = document.createElement("button");
+  // k6.textContent = "K=6";
 
-  const k7 = document.createElement("button");
-  k7.textContent = "K=7";
+  // const k7 = document.createElement("button");
+  // k7.textContent = "K=7";
 
-  const k8 = document.createElement("button");
-  k8.textContent = "K=8";
+  // const k8 = document.createElement("button");
+  // k8.textContent = "K=8";
 
-  const k9 = document.createElement("button");
-  k9.textContent = "K=9";
+  // const k9 = document.createElement("button");
+  // k9.textContent = "K=9";
 
-  const k10 = document.createElement("button");
-  k10.textContent = "K=10";
+  // const k10 = document.createElement("button");
+  // k10.textContent = "K=10";
 
-  k1.addEventListener("click", function(){
-    addMarker(map,'1');
-  });
+  // k1.addEventListener("click", function(){
+  //   addMarker(map,'1');
+  // });
 
-  k2.addEventListener("click", function(){
-    addMarker(map,'2');
-  });
+  // k2.addEventListener("click", function(){
+  //   addMarker(map,'2');
+  // });
 
-  k3.addEventListener("click", function(){
-    addMarker(map,'3');
-  });
+  // k3.addEventListener("click", function(){
+  //   addMarker(map,'3');
+  // });
 
-  k4.addEventListener("click", function(){
-    addMarker(map,'4');
-  });
+  // k4.addEventListener("click", function(){
+  //   addMarker(map,'4');
+  // });
 
-  k5.addEventListener("click", function(){
-    addMarker(map,'5');
-  });
+  // k5.addEventListener("click", function(){
+  //   addMarker(map,'5');
+  // });
 
-  k6.addEventListener("click", function(){
-    addMarker(map,'6');
-  });
+  // k6.addEventListener("click", function(){
+  //   addMarker(map,'6');
+  // });
 
-  k7.addEventListener("click", function(){
-    addMarker(map,'7');
-  });
+  // k7.addEventListener("click", function(){
+  //   addMarker(map,'7');
+  // });
 
-  k8.addEventListener("click", function(){
-    addMarker(map,'8');
-  });
+  // k8.addEventListener("click", function(){
+  //   addMarker(map,'8');
+  // });
 
-  k9.addEventListener("click", function(){
-    addMarker(map,'9');
-  });
+  // k9.addEventListener("click", function(){
+  //   addMarker(map,'9');
+  // });
 
-  k10.addEventListener("click", function(){
-    addMarker(map,'10');
-  });
+  // k10.addEventListener("click", function(){
+  //   addMarker(map,'10');
+  // });
 
-function addMarker(map: google.maps.Map, label) {
-  // Add the marker at the clicked location, and add the next-available label
-  // from the array of alphabetical characters.
-  markers.push(new google.maps.Marker({
-    position: {
-      lat: 47.353734888615854,
-      lng: -135.4177527132034
-    },
-    label: label,
-    map: map,
-  }));
+// function addMarker(map: google.maps.Map, label) {
+//   // Add the marker at the clicked location, and add the next-available label
+//   // from the array of alphabetical characters.
+//   markers.push(new google.maps.Marker({
+//     position: {
+//       lat: 47.353734888615854,
+//       lng: -135.4177527132034
+//     },
+//     label: label,
+//     map: map,
+//   }));
 
-  console.log(`k = ${label}`)
-}
+//   console.log(`k = ${label}`)
+// }
 
 function addPosMarker(map: google.maps.Map, rank, lat, lng) {
   // Add the marker at the clicked location, and add the next-available label
@@ -162,20 +166,18 @@ function addPosMarker(map: google.maps.Map, rank, lat, lng) {
     label: rank,
     map: map,
   }));
-
-  console.log(`${rank}`)
 }
 
 
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k1);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k2);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k3);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k4);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k5);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k6);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k7);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k8);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k9);
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k10);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k1);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k2);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k3);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k4);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k5);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k6);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k7);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k8);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k9);
+  // map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(k10);
 }
 export { initMap };
