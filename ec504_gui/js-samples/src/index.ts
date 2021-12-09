@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 /* eslint-disable no-undef, @typescript-eslint/no-unused-vars, no-unused-vars */
+import axios from "axios";
 import "./style.css";
 
 const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let labelIndex = 0;
+let markers: google.maps.Marker[] = [];
 
 function initMap() {
   const myLatlng = { lat: 42.363, lng: -100.044 };
@@ -37,26 +39,31 @@ function initMap() {
 
 
   // Configure the click listener.
-  map.addListener("click", (mapsMouseEvent) => {
+  map.addListener("click", async (mapsMouseEvent) => {
     // Close the current InfoWindow.
     infoWindow.close();
 
+    markers.forEach(marker=>marker.setMap(null));
+    markers = [];
     // Create a new InfoWindow.
     infoWindow = new google.maps.InfoWindow({
       position: mapsMouseEvent.latLng,
     });
 
     
-
     infoWindow.setContent(
       JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2)
       //JSON.stringify(formStr)
     );
+    const str: any = infoWindow.getContent()
+    const {lat, lng}: any = JSON.parse(str)
+    const res:any = await axios.get(`http://localhost:3000/api/pos?lat=${lat}&lng=${lng}`);
+      console.log("res",res)
+    addPosMarker(map, '0', Number(res.data.lat), Number(res.data.lng))
 
     console.log(infoWindow.getContent())
 
     infoWindow.open(map);
-    //console.log(infoWindow.getContent())
   });
 
   const k1 = document.createElement("button");
@@ -132,16 +139,31 @@ function initMap() {
 function addMarker(map: google.maps.Map, label) {
   // Add the marker at the clicked location, and add the next-available label
   // from the array of alphabetical characters.
-  new google.maps.Marker({
+  markers.push(new google.maps.Marker({
     position: {
       lat: 47.353734888615854,
       lng: -135.4177527132034
     },
     label: label,
     map: map,
-  });
+  }));
 
   console.log(`k = ${label}`)
+}
+
+function addPosMarker(map: google.maps.Map, rank, lat, lng) {
+  // Add the marker at the clicked location, and add the next-available label
+  // from the array of alphabetical characters.
+  markers.push(new google.maps.Marker({
+    position: {
+      lat: lat,
+      lng: lng
+    },
+    label: rank,
+    map: map,
+  }));
+
+  console.log(`${rank}`)
 }
 
 

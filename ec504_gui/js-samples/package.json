@@ -12,6 +12,11 @@
   "bugs": {
     "url": "https://github.com/googlemaps/js-samples/issues"
   },
+  "proxy": {
+    "/api/*": {
+      "target": "http://localhost:3000"
+    }
+  },
   "license": "Apache-2.0",
   "author": "Justin Poehnelt <jpoehnelt@google.com>",
   "scripts": {
@@ -34,5 +39,9 @@
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^4.0.0-beta.3"
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "http-proxy-middleware": "^2.0.1"
   }
 }
