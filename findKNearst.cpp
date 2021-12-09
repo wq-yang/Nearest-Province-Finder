@@ -105,6 +105,7 @@ void maintain(Place& c) {
 int build(int l, int r) {
     if (l>r) return -1;
     int mid = l + (r-l)/2;
+    // calculate the variance for each dimension
     double mean1=0, mean2=0, var1=0, var2=0;
     for (int i=l; i<=r; ++i) {
         mean1 += places[i].phi;
@@ -194,8 +195,8 @@ int main(int argc, char *argv[]) {
         for (int i=nearest.size()-1; i>=int(nearest.size()-K); --i) {
             int idx = nearest[i].second;
             double dist = nearest[i].first;
-            cout << "\t" << places[idx].county << ", " << places[idx].state
-                << "(" << places[idx].lat << ", " << places[idx].lon << "), "
+            cout << "\t\033[1;31m" << places[idx].county << ", " << places[idx].state
+                << "\033[0m(" << places[idx].lat << ", " << places[idx].lon << "), "
                 << "distance = " << sqrt(dist)*R << "km" << endl;
         }
     }
