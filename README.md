@@ -8,6 +8,7 @@ Jiaqi Zhang, Wenqiang Yang
 
 - super fast pre-processing and querying with K-d tree
 - always gives the accurate K nearest reference points
+- calculates distances correctly, the results are consistent with http://www.movable-type.co.uk/scripts/latlong.html
 - easy to use GUI and CLI
 
 ## Usage
