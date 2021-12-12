@@ -6,7 +6,7 @@ Jiaqi Zhang, Wenqiang Yang
 
 ## Features
 
-- super fast pre-processing and querying
+- super fast pre-processing and querying with K-d tree
 - always gives the accurate K nearest reference points
 - easy to use GUI and CLI
 
@@ -33,8 +33,21 @@ Jiaqi Zhang, Wenqiang Yang
 
 ![gui](imgs/gui.png)
 
-## Reference and thanks
+## File srtucture
 
-Thanks to https://github.com/yhirose/cpp-httplib and https://github.com/googlemaps/js-samples. With them make the GUI development much easier.
+some important files
 
-Our implementation of K-d tree referred a lot to https://oi-wiki.org/ds/kdt/ (Chinese).
+- findKNearst.h: defines how to read file, and main structure of K-d tree
+
+- cli.cpp: deals with cli interface
+
+- gui/src/index.ts: gui implementation
+- services/server.cpp: server with RESTful API dealing with nearest point querying
+
+
+
+## Reference
+
+Big thanks to https://github.com/yhirose/cpp-httplib and https://github.com/googlemaps/js-samples. With them make the GUI development much easier.
+
+Our implementation of K-d tree referred to https://oi-wiki.org/ds/kdt/ (Chinese).
