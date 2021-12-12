@@ -49,6 +49,6 @@ some important files
 
 ## Reference
 
-Big thanks to https://github.com/yhirose/cpp-httplib and https://github.com/googlemaps/js-samples. With them make the GUI development much easier.
+Big thanks to https://github.com/yhirose/cpp-httplib and https://github.com/googlemaps/js-samples. They make the GUI development (and the backend services development) much easier.
 
 Our implementation of K-d tree referred to https://oi-wiki.org/ds/kdt/ (Chinese).
